@@ -1,10 +1,9 @@
+
+import CompanyDashboard from "./pages/CompanyDashboard";
+
 function App() {
-  return (
-    <main className="app">
-      <h1>LedgerGuard</h1>
-      <p>Frontend workspace is ready.</p>
-    </main>
-  )
+  return <CompanyDashboard />;
 }
 
-export default App
+export default App;
+
