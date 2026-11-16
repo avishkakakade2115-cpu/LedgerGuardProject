@@ -5,6 +5,7 @@ import User from "../models/User.js";
 import Organization from "../models/Organization.js";
 import Tenant from "../models/Tenant.js";
 
+
 import { hashPassword } from "../utils/password.js";
 
 interface RegisterUserInput {
@@ -96,3 +97,5 @@ export const registerUser = async (
     role: "member",
   };
 };
+
+
