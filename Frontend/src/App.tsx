@@ -1,10 +1,8 @@
+import EntryPortal from "./pages/EntryPortal";
+
 function App() {
-  return (
-    <main className="app">
-      <h1>LedgerGuard</h1>
-      <p>Frontend workspace is ready.</p>
-    </main>
-  )
+  return <EntryPortal />;
 }
 
-export default App
+export default App;
+
