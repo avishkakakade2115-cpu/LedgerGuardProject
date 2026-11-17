@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import organizationRoutes from "./routes/organizationRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(cors());
 // Parse incoming JSON requests
 app.use(express.json());
 
+app.use("/api/auth", authRoutes);
 app.use("/api/organizations", organizationRoutes);
 
 // Health check API
