@@ -1,8 +1,7 @@
-
-import Login from "./pages/Login";
+import CompanyDashboard from "./pages/CompanyDashboard";
 
 function App() {
-  return <Login />;
+  return <CompanyDashboard />;
 }
 
 export default App;
