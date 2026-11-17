@@ -5,7 +5,8 @@ import User from "../models/User.js";
 import Organization from "../models/Organization.js";
 import Tenant from "../models/Tenant.js";
 
-
+import { comparePassword } from "../utils/password.js";
+import { generateToken } from "../utils/jwt.js";
 import { hashPassword } from "../utils/password.js";
 
 interface RegisterUserInput {
@@ -99,3 +100,87 @@ export const registerUser = async (
 };
 
 
+
+
+interface LoginUserInput {
+  email: string;
+  password: string;
+}
+
+interface LoginUserResult {
+  accessToken: string;
+  user: {
+    userId: string;
+    name: string;
+    email: string;
+    organizationId: string;
+    role: "owner" | "admin" | "member";
+  };
+}
+
+export const loginUser = async (
+  input: LoginUserInput
+): Promise<LoginUserResult> => {
+  const email = input.email.trim().toLowerCase();
+  const password = input.password;
+
+  // 1. Validate input
+  if (!email || !password) {
+    throw new Error("Email and password are required");
+  }
+
+  // 2. Find user and explicitly retrieve passwordHash
+  const user = await User.findOne({ email }).select("+passwordHash");
+
+  if (!user || !user.isActive) {
+    throw new Error("Invalid email or password");
+  }
+
+  // 3. Verify password
+  const isPasswordValid = await comparePassword(
+    password,
+    user.passwordHash
+  );
+
+  if (!isPasswordValid) {
+    throw new Error("Invalid email or password");
+  }
+
+  // 4. Verify organization status
+  const organization = await Organization.findById(
+    user.organizationId
+  );
+
+  if (!organization || organization.status !== "active") {
+    throw new Error("Organization is inactive or unavailable");
+  }
+
+  // 5. Verify tenant configuration
+  const tenant = await Tenant.findOne({
+    organizationId: user.organizationId,
+    connectionStatus: "active",
+  });
+
+  if (!tenant) {
+    throw new Error("Tenant configuration is unavailable");
+  }
+
+  // 6. Generate JWT
+  const accessToken = generateToken({
+    userId: user._id.toString(),
+    organizationId: user.organizationId.toString(),
+    role: user.role,
+  });
+
+  // 7. Return token and safe user information
+  return {
+    accessToken,
+    user: {
+      userId: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      organizationId: user.organizationId.toString(),
+      role: user.role,
+    },
+  };
+};
