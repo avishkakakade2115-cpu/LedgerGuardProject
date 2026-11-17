@@ -1,0 +1,128 @@
+
+* {
+  box-sizing: border-box;
+}
+
+.registration-page {
+  min-height: 100vh;
+  background: #f4f6fb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 35px 20px;
+  font-family: Arial, sans-serif;
+}
+
+.registration-card {
+  width: 100%;
+  max-width: 750px;
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.registration-header {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.registration-header h1 {
+  color: #173b72;
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.registration-header p,
+.registration-form p {
+  color: #7b8494;
+}
+
+.registration-progress {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.progress-step {
+  text-align: center;
+  flex: 1;
+  color: #a0a8b5;
+}
+
+.progress-step span {
+  width: 35px;
+  height: 35px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background: #e7eaf0;
+  font-weight: bold;
+}
+
+.progress-step.active span {
+  background: #2458a6;
+  color: white;
+}
+
+.progress-step.active {
+  color: #2458a6;
+}
+
+.progress-step p {
+  font-size: 12px;
+}
+
+.registration-form h2 {
+  color: #1c2c45;
+}
+
+.registration-form label {
+  display: block;
+  margin: 18px 0 8px;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.registration-form input,
+.registration-form select {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #dce1e9;
+  border-radius: 7px;
+  font-size: 14px;
+  outline: none;
+}
+
+.registration-form input:focus,
+.registration-form select:focus {
+  border-color: #2458a6;
+}
+
+.registration-form button {
+  width: 100%;
+  margin-top: 28px;
+  padding: 14px;
+  background: #2458a6;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.registration-form button:hover {
+  background: #173f7c;
+}
+
+@media (max-width: 600px) {
+  .registration-card {
+    padding: 22px;
+  }
+
+  .progress-step p {
+    font-size: 10px;
+  }
+}

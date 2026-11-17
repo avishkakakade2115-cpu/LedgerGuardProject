@@ -1,0 +1,156 @@
+
+* {
+  box-sizing: border-box;
+}
+
+.entry-page {
+  min-height: 100vh;
+  background: #f4f6fb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 20px;
+  font-family: Arial, sans-serif;
+}
+
+.entry-container {
+  width: 100%;
+  max-width: 950px;
+}
+
+.entry-header {
+  text-align: center;
+  margin-bottom: 45px;
+}
+
+.entry-header h1 {
+  color: #173b72;
+  font-size: 34px;
+  margin-bottom: 8px;
+}
+
+.entry-header p,
+.entry-heading p {
+  color: #7b8494;
+}
+
+.entry-heading {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.entry-heading h2 {
+  color: #1c2c45;
+  font-size: 27px;
+}
+
+.entry-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px;
+}
+
+.entry-card {
+  background: white;
+  padding: 35px;
+  border-radius: 14px;
+  border: 1px solid #e5e9f0;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+  text-align: center;
+}
+
+.entry-icon {
+  font-size: 42px;
+  margin-bottom: 15px;
+}
+
+.entry-card h3 {
+  color: #1c2c45;
+  font-size: 21px;
+}
+
+.entry-card p {
+  color: #7b8494;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 45px;
+}
+
+.entry-button {
+  width: 100%;
+  padding: 13px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 7px;
+  background: #2458a6;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.entry-button:hover {
+  background: #173f7c;
+}
+
+.entry-button.secondary {
+  background: white;
+  color: #2458a6;
+  border: 1px solid #2458a6;
+}
+
+.entry-button.secondary:hover {
+  background: #f0f5ff;
+}
+
+.entry-next-screen {
+  max-width: 550px;
+  margin: auto;
+  padding: 35px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+}
+
+.entry-next-screen h2 {
+  color: #1c2c45;
+  margin-top: 30px;
+}
+
+.entry-next-screen p {
+  color: #7b8494;
+  line-height: 1.6;
+}
+
+.back-button {
+  border: none;
+  background: transparent;
+  color: #2458a6;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.info-message {
+  padding: 15px;
+  background: #f0f5ff;
+  border-radius: 7px;
+  color: #344d73;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.entry-footer {
+  text-align: center;
+  margin-top: 35px;
+  color: #929baa;
+  font-size: 12px;
+}
+
+@media (max-width: 650px) {
+  .entry-options {
+    grid-template-columns: 1fr;
+  }
+
+  .entry-card {
+    padding: 25px;
+  }
+}

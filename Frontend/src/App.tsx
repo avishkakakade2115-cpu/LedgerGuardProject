@@ -1,9 +1,8 @@
-import CompanyDashboard from "./pages/CompanyDashboard";
+import EntryPortal from "./pages/EntryPortal";
 
 function App() {
-  return <CompanyDashboard />;
+  return <EntryPortal />;
 }
 
 export default App;
-
 
