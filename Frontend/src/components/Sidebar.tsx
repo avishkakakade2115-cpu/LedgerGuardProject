@@ -1,6 +1,11 @@
 
-import { useState } from "react";
+
 import "../styles/dashboard.css";
+
+type SidebarProps = {
+  activeItem: string;
+  onNavigate: (item: string) => void;
+};
 
 const menuItems = [
   { name: "Dashboard", icon: "⌂" },
@@ -12,9 +17,7 @@ const menuItems = [
   { name: "Reports", icon: "▧" },
 ];
 
-const Sidebar = () => {
-  const [activeItem, setActiveItem] = useState("Dashboard");
-
+const Sidebar = ({ activeItem, onNavigate }: SidebarProps) => {
   return (
     <aside className="sidebar">
 
@@ -35,12 +38,18 @@ const Sidebar = () => {
           {menuItems.map((item) => (
             <button
               key={item.name}
+              type="button"
               className={`sidebar-link ${
                 activeItem === item.name ? "active" : ""
               }`}
-              onClick={() => setActiveItem(item.name)}
+              aria-current={
+                activeItem === item.name ? "page" : undefined
+              }
+              onClick={() => onNavigate(item.name)}
             >
-              <span className="sidebar-icon">{item.icon}</span>
+              <span className="sidebar-icon" aria-hidden="true">
+                {item.icon}
+              </span>
               <span>{item.name}</span>
             </button>
           ))}
@@ -50,12 +59,16 @@ const Sidebar = () => {
       {/* Bottom Menu */}
       <div className="sidebar-bottom">
         <button
+          type="button"
           className={`sidebar-link ${
             activeItem === "Settings" ? "active" : ""
           }`}
-          onClick={() => setActiveItem("Settings")}
+          aria-current={
+            activeItem === "Settings" ? "page" : undefined
+          }
+          onClick={() => onNavigate("Settings")}
         >
-          <span className="sidebar-icon">⚙</span>
+          <span className="sidebar-icon" aria-hidden="true">⚙</span>
           <span>Settings</span>
         </button>
 

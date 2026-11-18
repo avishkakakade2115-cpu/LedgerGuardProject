@@ -2,7 +2,11 @@
 import { useState } from "react";
 import "../styles/login.css";
 
-const Login = () => {
+type LoginProps = {
+  onBack: () => void;
+};
+
+const Login = ({ onBack }: LoginProps) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -10,8 +14,15 @@ const Login = () => {
 
       {/* LEFT SIDE - LOGIN FORM */}
       <div className="login-left">
-
         <div className="login-container">
+
+          <button
+            type="button"
+            className="login-back-button"
+            onClick={onBack}
+          >
+            ← Back to Portal
+          </button>
 
           <div className="login-logo">
             <div className="logo-symbol">L</div>
@@ -24,7 +35,6 @@ const Login = () => {
           </div>
 
           <form className="login-form">
-
             <div className="form-group">
               <label htmlFor="email">Email Address</label>
               <input
@@ -68,7 +78,6 @@ const Login = () => {
             <button type="submit" className="login-submit">
               Sign In
             </button>
-
           </form>
 
           <div className="register-link">
@@ -79,13 +88,11 @@ const Login = () => {
           <div className="login-copyright">
             © 2026 LedgerGuard. All rights reserved.
           </div>
-
         </div>
       </div>
 
       {/* RIGHT SIDE - BRANDING */}
       <div className="login-right">
-
         <div className="branding-content">
 
           <div className="branding-symbol">◆</div>
@@ -108,13 +115,11 @@ const Login = () => {
             <p>✓ Real-time Financial Insights</p>
             <p>✓ Complete Business Visibility</p>
           </div>
-
         </div>
 
         <div className="branding-footer">
           SMARTER FINANCES. STRONGER CONTROL.
         </div>
-
       </div>
 
     </div>
