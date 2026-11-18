@@ -1,4 +1,4 @@
-
+import User from "../models/User.js";
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "../utils/jwt.js";
 
@@ -16,13 +16,13 @@ declare global {
   }
 }
 
-export const authenticateUser = (
+
+export const authenticateUser = async (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   try {
-    // 1. Get Authorization header
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -33,7 +33,6 @@ export const authenticateUser = (
       return;
     }
 
-    // 2. Extract token
     const token = authHeader.split(" ")[1];
 
     if (!token) {
@@ -44,19 +43,32 @@ export const authenticateUser = (
       return;
     }
 
-    // 3. Verify token
+    // Verify JWT signature and expiry
     const decoded = verifyToken(token);
 
-    // 4. Attach authenticated identity to request
+    // Fetch current user status from central database
+    const user = await User.findById(decoded.userId);
+
+    if (
+      !user ||
+      !user.isActive ||
+      user.organizationId.toString() !== decoded.organizationId
+    ) {
+      res.status(401).json({
+        success: false,
+        message: "User account is unavailable",
+      });
+      return;
+    }
+
+    // Use current database role, not potentially outdated JWT role
     req.user = {
-      userId: decoded.userId,
-      organizationId: decoded.organizationId,
-      role: decoded.role,
+      userId: user._id.toString(),
+      organizationId: user.organizationId.toString(),
+      role: user.role,
     };
 
-    // 5. Continue to controller
     next();
-
   } catch (error) {
     res.status(401).json({
       success: false,
