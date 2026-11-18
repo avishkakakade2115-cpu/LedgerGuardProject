@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import organizationRoutes from "./routes/organizationRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import tenantTestRoutes from "./routes/tenantTestRoutes.js";
 
 const app = express();
 
@@ -18,6 +19,11 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/organizations", organizationRoutes);
+
+if (process.env.NODE_ENV !== "production") {
+  app.use("/api/tenant-test", tenantTestRoutes);
+}
+
 
 // Health check API
 app.get("/api/health", (req, res) => {
