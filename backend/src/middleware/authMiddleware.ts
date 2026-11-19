@@ -1,4 +1,6 @@
+
 import User from "../models/User.js";
+import Organization from "../models/Organization.js";
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "../utils/jwt.js";
 
@@ -16,37 +18,44 @@ declare global {
   }
 }
 
-
 export const authenticateUser = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    res.status(401).json({
+      success: false,
+      message: "Authentication token is required",
+    });
+    return;
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  if (!token) {
+    res.status(401).json({
+      success: false,
+      message: "Invalid authorization header",
+    });
+    return;
+  }
+
+  let decoded;
+
   try {
-    const authHeader = req.headers.authorization;
+    decoded = verifyToken(token);
+  } catch {
+    res.status(401).json({
+      success: false,
+      message: "Invalid or expired authentication token",
+    });
+    return;
+  }
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      res.status(401).json({
-        success: false,
-        message: "Authentication token is required",
-      });
-      return;
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    if (!token) {
-      res.status(401).json({
-        success: false,
-        message: "Invalid authorization header",
-      });
-      return;
-    }
-
-    // Verify JWT signature and expiry
-    const decoded = verifyToken(token);
-
-    // Fetch current user status from central database
+  try {
     const user = await User.findById(decoded.userId);
 
     if (
@@ -61,7 +70,18 @@ export const authenticateUser = async (
       return;
     }
 
-    // Use current database role, not potentially outdated JWT role
+    const organization = await Organization.findById(
+      user.organizationId
+    );
+
+    if (!organization || organization.status !== "active") {
+      res.status(403).json({
+        success: false,
+        message: "Organization is suspended or unavailable",
+      });
+      return;
+    }
+
     req.user = {
       userId: user._id.toString(),
       organizationId: user.organizationId.toString(),
@@ -70,9 +90,11 @@ export const authenticateUser = async (
 
     next();
   } catch (error) {
-    res.status(401).json({
+    console.error("Authentication middleware error:", error);
+
+    res.status(500).json({
       success: false,
-      message: "Invalid or expired authentication token",
+      message: "Unable to authenticate user at this time",
     });
   }
 };
