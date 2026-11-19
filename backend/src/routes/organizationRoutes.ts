@@ -3,6 +3,7 @@ import { createOrganization } from "../controllers/organizationController.js";
 
 const router = Router();
 
-router.post("/", createOrganization);
+// Register a new organization and its first owner
+router.post("/register", createOrganization);
 
 export default router;

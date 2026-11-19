@@ -2,9 +2,11 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+
 import organizationRoutes from "./routes/organizationRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import tenantTestRoutes from "./routes/tenantTestRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 const app = express();
 
@@ -19,6 +21,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/organizations", organizationRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 if (process.env.NODE_ENV !== "production") {
   app.use("/api/tenant-test", tenantTestRoutes);
