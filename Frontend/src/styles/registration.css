@@ -117,6 +117,135 @@
   background: #173f7c;
 }
 
+.registration-form button:disabled {
+  background: #94a8c7;
+  cursor: not-allowed;
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 70px;
+}
+
+.password-field .show-password {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: auto;
+  margin: 0;
+  padding: 6px 8px;
+  transform: translateY(-50%);
+  background: transparent;
+  color: #2458a6;
+  font-size: 12px;
+}
+
+.password-field .show-password:hover {
+  background: #eef3fb;
+}
+
+.registration-actions {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.registration-actions button {
+  margin-top: 0;
+}
+
+.registration-form button.secondary-action {
+  background: white;
+  color: #2458a6;
+  border: 1px solid #2458a6;
+}
+
+.registration-form button.secondary-action:hover {
+  background: #f0f5ff;
+}
+
+.registration-error {
+  margin: 18px 0 0;
+  padding: 12px;
+  border-radius: 7px;
+  background: #fff1f1;
+  color: #b42318;
+  font-size: 14px;
+}
+
+.review-section {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid #e5e9f0;
+  border-radius: 9px;
+  background: #fafbfc;
+}
+
+.review-section h3 {
+  margin: 0 0 12px;
+  color: #2458a6;
+  font-size: 16px;
+}
+
+.review-section dl {
+  margin: 0;
+}
+
+.review-section dl div {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 12px;
+  padding: 7px 0;
+  border-top: 1px solid #edf0f4;
+}
+
+.review-section dl div:first-child {
+  border-top: none;
+}
+
+.review-section dt {
+  color: #7b8494;
+  font-size: 13px;
+}
+
+.review-section dd {
+  margin: 0;
+  color: #344054;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.registration-success {
+  text-align: center;
+  padding: 45px 20px;
+}
+
+.success-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #daf5e3;
+  color: #18794e;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.registration-success h2 {
+  color: #1c2c45;
+}
+
+.registration-success p {
+  color: #7b8494;
+}
+
 @media (max-width: 600px) {
   .registration-card {
     padding: 22px;
@@ -124,5 +253,14 @@
 
   .progress-step p {
     font-size: 10px;
+  }
+
+  .registration-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .review-section dl div {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }

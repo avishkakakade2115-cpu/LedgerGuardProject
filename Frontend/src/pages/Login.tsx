@@ -1,13 +1,50 @@
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+import { apiRequest } from "../services/api";
 import "../styles/login.css";
 
 type LoginProps = {
   onBack: () => void;
+  onLogin: () => void;
 };
 
-const Login = ({ onBack }: LoginProps) => {
+type LoginResponse = {
+  data: {
+    accessToken: string;
+  };
+};
+
+const Login = ({ onBack, onLogin }: LoginProps) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErrorMessage("");
+    setIsSubmitting(true);
+
+    const formData = new FormData(event.currentTarget);
+
+    try {
+      const response = await apiRequest<LoginResponse>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email: formData.get("email"),
+          password: formData.get("password"),
+        }),
+      });
+
+      sessionStorage.setItem("accessToken", response.data.accessToken);
+      onLogin();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Unable to sign in"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="login-page">
@@ -34,13 +71,15 @@ const Login = ({ onBack }: LoginProps) => {
             <p>Enter your credentials to access your account.</p>
           </div>
 
-          <form className="login-form">
+          <form className="login-form" onSubmit={handleSubmit}>
             <div className="form-group">
               <label htmlFor="email">Email Address</label>
               <input
                 type="email"
                 id="email"
+                name="email"
                 placeholder="Enter your email"
+                autoComplete="email"
                 required
               />
             </div>
@@ -52,7 +91,9 @@ const Login = ({ onBack }: LoginProps) => {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="password"
+                  name="password"
                   placeholder="Enter your password"
+                  autoComplete="current-password"
                   required
                 />
 
@@ -75,9 +116,18 @@ const Login = ({ onBack }: LoginProps) => {
               <a href="/forgot-password">Forgot Password?</a>
             </div>
 
-            <button type="submit" className="login-submit">
-              Sign In
+            <button
+              type="submit"
+              className="login-submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Signing In..." : "Sign In"}
             </button>
+            {errorMessage && (
+              <p className="login-error" role="alert">
+                {errorMessage}
+              </p>
+            )}
           </form>
 
           <div className="register-link">

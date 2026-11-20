@@ -3,6 +3,7 @@ import { useState } from "react";
 import "../styles/entryPortal.css";
 import Login from "./Login";
 import OrganizationRegistration from "./OrganizationRegistration";
+import CompanyDashboard from "./CompanyDashboard";
 
 type PortalChoice =
   | "company-existing"
@@ -12,15 +13,20 @@ type PortalChoice =
 
 function EntryPortal() {
   const [choice, setChoice] = useState<PortalChoice | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const goBack = () => setChoice(null);
+
+  if (isAuthenticated) {
+    return <CompanyDashboard />;
+  }
 
   // Both existing account options use the same Login page
   if (
     choice === "company-existing" ||
     choice === "employee-existing"
   ) {
-    return <Login onBack={goBack} />;
+    return <Login onBack={goBack} onLogin={() => setIsAuthenticated(true)} />;
   }
 
   // New company registration
