@@ -14,7 +14,23 @@ const app = express();
 app.use(helmet());
 
 // Allow frontend communication
-app.use(cors());
+const allowedOrigins = (
+  process.env.CORS_ORIGIN || "http://localhost:5173"
+)
+  .split(",")
+  .map((origin) => origin.trim());
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+  })
+);
 
 // Parse incoming JSON requests
 app.use(express.json());
