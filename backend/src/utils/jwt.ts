@@ -7,18 +7,21 @@ interface JwtPayload {
   role: "owner" | "admin" | "member";
 }
 
-export const generateToken = (
-  payload: JwtPayload
-): string => {
+
+export const generateToken = (payload: JwtPayload): string => {
   const secret = process.env.JWT_SECRET;
 
   if (!secret) {
     throw new Error("JWT_SECRET is not configured");
   }
 
-  return jwt.sign(payload, secret, {
-    expiresIn: "1h",
-  });
+  const expiresIn = process.env.JWT_EXPIRES_IN || "1h";
+
+  const options: jwt.SignOptions = {
+    expiresIn: expiresIn as NonNullable<jwt.SignOptions["expiresIn"]>,
+  };
+
+  return jwt.sign(payload, secret, options);
 };
 
 export const verifyToken = (

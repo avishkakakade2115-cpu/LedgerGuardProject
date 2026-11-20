@@ -1,48 +1,17 @@
 
 import { Request, Response } from "express";
-import { registerUser, loginUser } from "../services/authService.js";
+import { loginUser, AuthServiceError } from "../services/authService.js";
 import User from "../models/User.js";
-
-export const register = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { name, email, password, organizationId } = req.body;
-
-    const user = await registerUser({
-      name,
-      email,
-      password,
-      organizationId,
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      data: user,
-    });
-  } catch (error) {
-    console.error("Registration error:", error);
-
-    res.status(400).json({
-      success: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Registration failed",
-    });
-  }
-};
 
 export const login = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const { email, password } = req.body;
-
-    const result = await loginUser({ email, password });
+    const result = await loginUser({
+      email: req.body.email,
+      password: req.body.password,
+    });
 
     res.status(200).json({
       success: true,
@@ -52,12 +21,17 @@ export const login = async (
   } catch (error) {
     console.error("Login error:", error);
 
-    res.status(401).json({
+    if (error instanceof AuthServiceError) {
+      res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+      return;
+    }
+
+    res.status(500).json({
       success: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Login failed",
+      message: "Unable to login at this time",
     });
   }
 };
@@ -75,9 +49,13 @@ export const getMe = async (
       return;
     }
 
-    const user = await User.findById(req.user.userId);
+    const user = await User.findOne({
+      _id: req.user.userId,
+      organizationId: req.user.organizationId,
+      isActive: true,
+    });
 
-    if (!user || !user.isActive) {
+    if (!user) {
       res.status(401).json({
         success: false,
         message: "User account is unavailable",
@@ -87,6 +65,7 @@ export const getMe = async (
 
     res.status(200).json({
       success: true,
+      message: "Profile fetched successfully",
       data: {
         userId: user._id.toString(),
         name: user.name,
