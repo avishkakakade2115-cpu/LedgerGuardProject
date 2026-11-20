@@ -7,6 +7,7 @@ import organizationRoutes from "./routes/organizationRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import tenantTestRoutes from "./routes/tenantTestRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
+import { env } from "./config/env.js";
 
 const app = express();
 
@@ -14,11 +15,9 @@ const app = express();
 app.use(helmet());
 
 // Allow frontend communication
-const allowedOrigins = (
-  process.env.CORS_ORIGIN || "http://localhost:5173"
-)
-  .split(",")
-  .map((origin) => origin.trim());
+const allowedOrigins = env.CORS_ORIGIN.split(",").map(
+  (origin) => origin.trim()
+);
 
 app.use(
   cors({
@@ -39,10 +38,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/organizations", organizationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
-if (process.env.NODE_ENV !== "production") {
+if (env.NODE_ENV !== "production") {
   app.use("/api/tenant-test", tenantTestRoutes);
 }
-
 
 // Health check API
 app.get("/api/health", (req, res) => {

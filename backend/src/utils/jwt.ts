@@ -1,5 +1,5 @@
-
 import jwt from "jsonwebtoken";
+import { env } from "../config/env.js";
 
 interface JwtPayload {
   userId: string;
@@ -7,33 +7,18 @@ interface JwtPayload {
   role: "owner" | "admin" | "member";
 }
 
-
 export const generateToken = (payload: JwtPayload): string => {
-  const secret = process.env.JWT_SECRET;
-
-  if (!secret) {
-    throw new Error("JWT_SECRET is not configured");
-  }
-
-  const expiresIn = process.env.JWT_EXPIRES_IN || "1h";
-
   const options: jwt.SignOptions = {
-    expiresIn: expiresIn as NonNullable<jwt.SignOptions["expiresIn"]>,
+    expiresIn: env.JWT_EXPIRES_IN as NonNullable<
+      jwt.SignOptions["expiresIn"]
+    >,
   };
 
-  return jwt.sign(payload, secret, options);
+  return jwt.sign(payload, env.JWT_SECRET, options);
 };
 
-export const verifyToken = (
-  token: string
-): JwtPayload => {
-  const secret = process.env.JWT_SECRET;
-
-  if (!secret) {
-    throw new Error("JWT_SECRET is not configured");
-  }
-
-  const decoded = jwt.verify(token, secret);
+export const verifyToken = (token: string): JwtPayload => {
+  const decoded = jwt.verify(token, env.JWT_SECRET);
 
   if (
     typeof decoded === "string" ||
