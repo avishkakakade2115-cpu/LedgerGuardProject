@@ -3,90 +3,55 @@ import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import StatCard from "../components/StatCard";
 import Topbar from "../components/Topbar";
+import {
+  getDashboardOverview,
+  logoutUser,
+  type DashboardResponse,
+} from "../services/api";
 import "../styles/dashboard.css";
 
-const stats = [
-  {
-    label: "Total Organizations",
-    value: "248",
-    detail: "Across all plans",
-    icon: "▣",
-    accent: "blue",
-  },
-  {
-    label: "Total Users",
-    value: "12,840",
-    detail: "Platform-wide users",
-    icon: "♙",
-    accent: "green",
-  },
-  {
-    label: "Active Organizations",
-    value: "231",
-    detail: "Currently operating",
-    icon: "✓",
-    accent: "blue",
-  },
-  {
-    label: "Suspended Organizations",
-    value: "17",
-    detail: "Require attention",
-    icon: "!",
-    accent: "amber",
-  },
-] as const;
+type CompanyDashboardProps = {
+  onLogout: () => void;
+};
 
-const recentActivity = [
-  {
-    title: "Northstar Capital completed onboarding",
-    category: "Organization",
-    time: "12 minutes ago",
-    icon: "＋",
-  },
-  {
-    title: "An administrator invited 8 new users",
-    category: "User management",
-    time: "1 hour ago",
-    icon: "♙",
-  },
-  {
-    title: "BluePeak Finance was suspended",
-    category: "Organization status",
-    time: "3 hours ago",
-    icon: "!",
-  },
-];
-
-const organizations = [
-  {
-    name: "Northstar Capital",
-    plan: "Enterprise",
-    users: "1,248",
-    status: "Active",
-  },
-  {
-    name: "Meridian Financial",
-    plan: "Growth",
-    users: "684",
-    status: "Active",
-  },
-  {
-    name: "BluePeak Finance",
-    plan: "Starter",
-    users: "92",
-    status: "Suspended",
-  },
-  {
-    name: "Harborstone Group",
-    plan: "Enterprise",
-    users: "2,106",
-    status: "Active",
-  },
-];
-
-const CompanyDashboard = () => {
+const CompanyDashboard = ({ onLogout }: CompanyDashboardProps) => {
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("Dashboard");
+  const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadDashboard = async () => {
+      try {
+        const response = await getDashboardOverview();
+
+        if (isMounted) {
+          setDashboard(response.data);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Unable to load dashboard."
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadDashboard();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!navigationOpen) return;
@@ -98,25 +63,69 @@ const CompanyDashboard = () => {
     };
 
     document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [navigationOpen]);
+
+  const handleLogout = () => {
+    logoutUser();
+    onLogout();
+  };
 
   const handleNavigate = (section: string) => {
     setActiveSection(section);
   };
 
+  if (loading) {
+    return <div className="dashboard-layout"><main className="dashboard-content"><p>Loading your organization dashboard...</p></main></div>;
+  }
+
+  if (errorMessage || !dashboard) {
+    return (
+      <div className="dashboard-layout">
+        <main className="dashboard-content">
+          <section className="dashboard-panel">
+            <h2>Unable to load dashboard</h2>
+            <p>{errorMessage || "Dashboard data is unavailable."}</p>
+            <button type="button" onClick={handleLogout}>
+              Return to Login
+            </button>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  const { organization, currentUser, statistics } = dashboard;
+
+  const stats = [
+    {
+      label: "Total Users",
+      value: String(statistics.totalUsers),
+      detail: "Organization users",
+      icon: "♙",
+      accent: "blue" as const,
+    },
+    {
+      label: "Active Users",
+      value: String(statistics.activeUsers),
+      detail: "Currently active",
+      icon: "✓",
+      accent: "green" as const,
+    },
+    {
+      label: "Inactive Users",
+      value: String(statistics.inactiveUsers),
+      detail: "Currently inactive",
+      icon: "!",
+      accent: "amber" as const,
+    },
+  ];
+
   return (
     <div className="dashboard-layout">
-
-      {/* Sidebar */}
       <div
         id="primary-sidebar"
-        className={`dashboard-sidebar${
-          navigationOpen ? " is-open" : ""
-        }`}
+        className={`dashboard-sidebar${navigationOpen ? " is-open" : ""}`}
         onClick={(event) => {
           if (
             event.target instanceof Element &&
@@ -132,7 +141,6 @@ const CompanyDashboard = () => {
         />
       </div>
 
-      {/* Mobile backdrop */}
       {navigationOpen && (
         <button
           type="button"
@@ -142,145 +150,66 @@ const CompanyDashboard = () => {
         />
       )}
 
-      {/* Main Content */}
       <main className="dashboard-content">
-
         <Topbar
           activeSection={activeSection}
           navigationOpen={navigationOpen}
-          onMenuToggle={() =>
-            setNavigationOpen((isOpen) => !isOpen)
-          }
+          onMenuToggle={() => setNavigationOpen((open) => !open)}
+          userName={currentUser.name}
+          userRole={currentUser.role}
+          onLogout={handleLogout}
         />
 
         <section className="dashboard-main">
-
           {activeSection === "Dashboard" ? (
-
             <>
-              {/* Dashboard Welcome */}
               <div className="dashboard-welcome">
                 <div>
                   <p className="dashboard-eyebrow">
-                    Platform overview
+                    Organization overview
                   </p>
-
-                  <h1>Welcome back, Super Admin</h1>
-
+                  <h1>Welcome back, {currentUser.name}</h1>
                   <p>
-                    Monitor organizations, users, and platform
-                    activity from one place.
+                    Here's an overview of {organization.name}.
                   </p>
                 </div>
 
                 <span className="sample-data-badge">
-                  Sample data
+                  {organization.status}
                 </span>
               </div>
 
-              {/* Statistics */}
               <div className="dashboard-stat-grid">
                 {stats.map((stat) => (
-                  <StatCard
-                    key={stat.label}
-                    {...stat}
-                  />
+                  <StatCard key={stat.label} {...stat} />
                 ))}
               </div>
 
-              {/* Dashboard Panels */}
               <div className="dashboard-panels">
-
-                {/* Recent Activity */}
                 <section className="dashboard-panel">
-                  <h2>Recent Activity</h2>
-
-                  <div className="activity-list">
-                    {recentActivity.map((activity) => (
-                      <div
-                        className="activity-item"
-                        key={activity.title}
-                      >
-                        <span className="activity-icon">
-                          {activity.icon}
-                        </span>
-
-                        <div className="activity-info">
-                          <h3>{activity.title}</h3>
-                          <p>{activity.category}</p>
-                        </div>
-
-                        <span className="activity-time">
-                          {activity.time}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  <h2>Organization Details</h2>
+                  <p><strong>Name:</strong> {organization.name}</p>
+                  <p><strong>Slug:</strong> {organization.slug}</p>
+                  <p><strong>Status:</strong> {organization.status}</p>
                 </section>
 
-                {/* Organization Overview */}
-                <section className="dashboard-panel organization-panel">
-                  <h2>Organization Overview</h2>
-
-                  <div className="organization-table-wrapper">
-                    <table className="organization-table">
-                      <thead>
-                        <tr>
-                          <th>Organization</th>
-                          <th>Plan</th>
-                          <th>Users</th>
-                          <th>Status</th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        {organizations.map((organization) => (
-                          <tr key={organization.name}>
-                            <td>{organization.name}</td>
-                            <td>{organization.plan}</td>
-                            <td>{organization.users}</td>
-                            <td>
-                              <span
-                                className={`status-pill ${
-                                  organization.status.toLowerCase()
-                                }`}
-                              >
-                                {organization.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                <section className="dashboard-panel">
+                  <h2>Account Details</h2>
+                  <p><strong>Name:</strong> {currentUser.name}</p>
+                  <p><strong>Email:</strong> {currentUser.email}</p>
+                  <p><strong>Role:</strong> {currentUser.role}</p>
                 </section>
-
               </div>
             </>
-
           ) : (
-
-            /* Other Navigation Sections */
             <div className="dashboard-panel">
-              <p className="dashboard-eyebrow">
-                Platform management
-              </p>
-
+              <p className="dashboard-eyebrow">Organization management</p>
               <h2>{activeSection}</h2>
-
               <p>
-                The {activeSection} section is ready for its
-                dedicated interface.
-              </p>
-
-              <p>
-                Its UI and functionality will be developed
-                separately.
+                The {activeSection} interface will be developed separately.
               </p>
             </div>
-
           )}
-
         </section>
       </main>
     </div>
@@ -288,4 +217,5 @@ const CompanyDashboard = () => {
 };
 
 export default CompanyDashboard;
+
 

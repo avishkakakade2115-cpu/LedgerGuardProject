@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import "../styles/entryPortal.css";
 import Login from "./Login";
 import OrganizationRegistration from "./OrganizationRegistration";
+import CompanyDashboard from "./CompanyDashboard";
 
 type PortalChoice =
   | "company-existing"
@@ -13,17 +13,32 @@ type PortalChoice =
 function EntryPortal() {
   const [choice, setChoice] = useState<PortalChoice | null>(null);
 
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => Boolean(sessionStorage.getItem("ledgerguard_token"))
+  );
+
   const goBack = () => setChoice(null);
 
-  // Both existing account options use the same Login page
+  if (isAuthenticated) {
+  return (
+    <CompanyDashboard
+      onLogout={() => setIsAuthenticated(false)}
+    />
+  );
+}
+
   if (
     choice === "company-existing" ||
     choice === "employee-existing"
   ) {
-    return <Login onBack={goBack} />;
+    return (
+      <Login
+        onBack={goBack}
+        onLoginSuccess={() => setIsAuthenticated(true)}
+      />
+    );
   }
 
-  // New company registration
   if (choice === "company-new") {
     return (
       <div className="entry-page">
@@ -31,9 +46,7 @@ function EntryPortal() {
           <button className="back-button" onClick={goBack}>
             ← Back to Portal
           </button>
-
           <OrganizationRegistration />
-
           <footer className="entry-footer">
             © 2026 LedgerGuard. All rights reserved.
           </footer>
@@ -45,7 +58,6 @@ function EntryPortal() {
   return (
     <div className="entry-page">
       <div className="entry-container">
-
         <header className="entry-header">
           <h1>LedgerGuard</h1>
           <p>Secure Organization Management Platform</p>
@@ -59,19 +71,16 @@ function EntryPortal() {
             </div>
 
             <div className="entry-options">
-
               <div className="entry-card">
                 <div className="entry-icon">🏢</div>
                 <h3>Company</h3>
                 <p>Register a new company or access an existing company.</p>
-
                 <button
                   className="entry-button"
                   onClick={() => setChoice("company-existing")}
                 >
                   Existing Company
                 </button>
-
                 <button
                   className="entry-button secondary"
                   onClick={() => setChoice("company-new")}
@@ -84,14 +93,12 @@ function EntryPortal() {
                 <div className="entry-icon">👥</div>
                 <h3>Employee / Admin</h3>
                 <p>Access your company account or activate a new account.</p>
-
                 <button
                   className="entry-button"
                   onClick={() => setChoice("employee-existing")}
                 >
                   Existing Account
                 </button>
-
                 <button
                   className="entry-button secondary"
                   onClick={() => setChoice("employee-new")}
@@ -99,7 +106,6 @@ function EntryPortal() {
                   New Account
                 </button>
               </div>
-
             </div>
           </>
         ) : (
@@ -107,13 +113,11 @@ function EntryPortal() {
             <button className="back-button" onClick={goBack}>
               ← Back
             </button>
-
             <h2>New Employee / Admin Account</h2>
             <p>
               New accounts are created by your organization's
               authorized administrator.
             </p>
-
             <div className="info-message">
               Please contact your Organization Admin
               and request an account invitation.
@@ -124,11 +128,9 @@ function EntryPortal() {
         <footer className="entry-footer">
           © 2026 LedgerGuard. All rights reserved.
         </footer>
-
       </div>
     </div>
   );
 }
 
 export default EntryPortal;
-
