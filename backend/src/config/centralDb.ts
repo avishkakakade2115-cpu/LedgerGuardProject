@@ -1,15 +1,9 @@
-
 import mongoose from "mongoose";
+import { env } from "./env.js";
 
 export const connectCentralDB = async (): Promise<void> => {
   try {
-    const mongoURI = process.env.CENTRAL_DB_URI;
-
-    if (!mongoURI) {
-      throw new Error("CENTRAL_DB_URI is missing in environment variables");
-    }
-
-    await mongoose.connect(mongoURI);
+    await mongoose.connect(env.CENTRAL_DB_URI);
 
     console.log("Central MongoDB connected successfully");
     console.log("Database:", mongoose.connection.name);
