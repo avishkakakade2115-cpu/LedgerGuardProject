@@ -15,11 +15,50 @@ export interface LoginResponse {
   user: User;
 }
 
+export type CompanySize = "1-10" | "11-50" | "51-200" | "201-500" | "500+";
+
+export interface RegisterOrganizationInput {
+  name: string;
+  companyEmail: string;
+  companyDomain: string;
+  contactNumber: string;
+  companySize: CompanySize;
+  companyAddress: string;
+
+  ownerName: string;
+  ownerEmail: string;
+  ownerPassword: string;
+}
+
+export interface RegisterOrganizationResponse {
+  organizationId: string;
+  organizationName: string;
+  slug: string;
+  databaseName: string;
+  status: string;
+  companyEmail?: string;
+  companyDomain?: string;
+  contactNumber?: string;
+  companySize?: string;
+  companyAddress?: string;
+  owner: {
+    userId: string;
+    name: string;
+    email: string;
+    role: "owner";
+  };
+}
+
 export interface DashboardResponse {
   organization: {
     id: string;
     name: string;
     slug: string;
+    companyEmail: string;
+    companyDomain: string;
+    contactNumber: string;
+    companySize: string;
+    companyAddress: string;
     status: string;
     createdAt: string;
   };
@@ -36,7 +75,7 @@ export interface DashboardResponse {
   };
 }
 
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
   success: boolean;
   message: string;
   data: T;
@@ -111,23 +150,20 @@ export const loginUser = async (
   return response.data;
 };
 
-export const getCurrentUser = async () => {
+export const getCurrentUser = async (): Promise<ApiResponse<User>> => {
   return request<ApiResponse<User>>("/api/auth/me");
 };
 
-export const getDashboardOverview = async () => {
+export const getDashboardOverview = async (): Promise<ApiResponse<DashboardResponse>> => {
   return request<ApiResponse<DashboardResponse>>(
     "/api/dashboard/overview"
   );
 };
 
-export const registerOrganization = async (data: {
-  name: string;
-  ownerName: string;
-  ownerEmail: string;
-  ownerPassword: string;
-}) => {
-  return request<ApiResponse<unknown>>(
+export const registerOrganization = async (
+  data: RegisterOrganizationInput
+): Promise<ApiResponse<RegisterOrganizationResponse>> => {
+  return request<ApiResponse<RegisterOrganizationResponse>>(
     "/api/organizations/register",
     {
       method: "POST",
@@ -136,6 +172,6 @@ export const registerOrganization = async (data: {
   );
 };
 
-export const logoutUser = () => {
+export const logoutUser = (): void => {
   sessionStorage.removeItem("ledgerguard_token");
 };

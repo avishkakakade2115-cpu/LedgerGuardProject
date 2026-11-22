@@ -5,6 +5,8 @@ import "../styles/dashboard.css";
 type SidebarProps = {
   activeItem: string;
   onNavigate: (item: string) => void;
+  userName?: string;
+  userRole?: string;
 };
 
 const menuItems = [
@@ -17,7 +19,12 @@ const menuItems = [
   { name: "Reports", icon: "▧" },
 ];
 
-const Sidebar = ({ activeItem, onNavigate }: SidebarProps) => {
+const Sidebar = ({
+  activeItem,
+  onNavigate,
+  userName,
+  userRole,
+}: SidebarProps) => {
   return (
     <aside className="sidebar">
 
@@ -26,7 +33,7 @@ const Sidebar = ({ activeItem, onNavigate }: SidebarProps) => {
         <div className="logo-icon">L</div>
         <div>
           <h2>LedgerGuard</h2>
-          <span>Platform Console</span>
+          <span>Organization Dashboard</span>
         </div>
       </div>
 
@@ -73,12 +80,15 @@ const Sidebar = ({ activeItem, onNavigate }: SidebarProps) => {
         </button>
 
         <div className="sidebar-profile">
-          <div className="profile-avatar">A</div>
-          <div className="profile-info">
-            <h4>Super Admin</h4>
-            <span>Platform Administrator</span>
+          <div className="profile-avatar">
+            {(userName ? userName[0] : "O")?.toUpperCase()}
           </div>
-          <span className="profile-menu">⋮</span>
+          <div className="profile-info">
+            <h4>{userName || "Organization User"}</h4>
+            <span style={{ textTransform: "capitalize" }}>
+              {userRole ? `${userRole} Access` : "Active Member"}
+            </span>
+          </div>
         </div>
       </div>
 
