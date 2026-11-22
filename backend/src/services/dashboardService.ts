@@ -1,4 +1,3 @@
-
 import Organization from "../models/Organization.js";
 import User from "../models/User.js";
 
@@ -14,7 +13,7 @@ export const getOrganizationDashboardOverview = async ({
   // Fetch organization and current user
   const [organization, currentUser] = await Promise.all([
     Organization.findById(organizationId).select(
-      "name slug status createdAt"
+      "name slug companyEmail companyDomain contactNumber companySize companyAddress status createdAt"
     ),
     User.findOne({
       _id: userId,
@@ -43,6 +42,11 @@ export const getOrganizationDashboardOverview = async ({
       id: organization._id.toString(),
       name: organization.name,
       slug: organization.slug,
+      companyEmail: organization.companyEmail || "",
+      companyDomain: organization.companyDomain || "",
+      contactNumber: organization.contactNumber || "",
+      companySize: organization.companySize || "",
+      companyAddress: organization.companyAddress || "",
       status: organization.status,
       createdAt: organization.createdAt,
     },
