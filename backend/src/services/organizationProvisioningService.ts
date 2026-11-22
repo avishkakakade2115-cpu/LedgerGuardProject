@@ -1,36 +1,53 @@
-import type { Collection } from "mongodb";
 import mongoose, { Types } from "mongoose";
-import Organization from "../models/Organization.js";
+import Organization, { CompanySize } from "../models/Organization.js";
 import Tenant from "../models/Tenant.js";
 import User from "../models/User.js";
 import { hashPassword } from "../utils/password.js";
-
+import {
+  getTenantConnection,
+  closeTenantConnection,
+} from "./tenantConnectionManager.js";
 
 interface TenantMetadata {
   _id: string;
   organizationId: Types.ObjectId;
   organizationName: string;
   createdAt: Date;
-} 
+}
 
-import {
-  getTenantConnection,
-  closeTenantConnection,
-} from "./tenantConnectionManager.js";
+export class ProvisioningError extends Error {
+  constructor(
+    message: string,
+    public statusCode: number = 400
+  ) {
+    super(message);
+    this.name = "ProvisioningError";
+  }
+}
 
-interface ProvisionOrganizationInput {
+export interface ProvisionOrganizationInput {
   name: string;
+  companyEmail: string;
+  companyDomain: string;
+  contactNumber: string;
+  companySize: CompanySize;
+  companyAddress: string;
   ownerName: string;
   ownerEmail: string;
   ownerPassword: string;
 }
 
-interface ProvisionOrganizationResult {
+export interface ProvisionOrganizationResult {
   organizationId: string;
   organizationName: string;
   slug: string;
   databaseName: string;
   status: "active";
+  companyEmail: string;
+  companyDomain: string;
+  contactNumber: string;
+  companySize: string;
+  companyAddress: string;
   owner: {
     userId: string;
     name: string;
@@ -38,6 +55,14 @@ interface ProvisionOrganizationResult {
     role: "owner";
   };
 }
+
+const ALLOWED_COMPANY_SIZES: CompanySize[] = [
+  "1-10",
+  "11-50",
+  "51-200",
+  "201-500",
+  "500+",
+];
 
 /**
  * Converts an organization name into a URL-friendly slug.
@@ -53,68 +78,136 @@ const generateSlug = (name: string): string => {
 };
 
 /**
+ * Normalizes a company domain input by removing protocol and path.
+ */
+const normalizeDomain = (domain: string): string => {
+  let cleaned = domain.trim().toLowerCase();
+  cleaned = cleaned.replace(/^https?:\/\//, "");
+  return cleaned.split(/[\/?#]/)[0] || "";
+};
+
+/**
  * Creates an organization and provisions its tenant database.
  */
-
 export const provisionOrganization = async (
   input: ProvisionOrganizationInput
 ): Promise<ProvisionOrganizationResult> => {
-  const name = input.name.trim();
-  const ownerName = input.ownerName.trim();
-  const ownerEmail = input.ownerEmail.trim().toLowerCase();
-  const ownerPassword = input.ownerPassword;
+  // 1. Sanitize inputs
+  const name = (input.name || "").trim();
+  const companyEmail = (input.companyEmail || "").trim().toLowerCase();
+  const rawDomain = (input.companyDomain || "").trim();
+  const contactNumber = (input.contactNumber || "").trim();
+  const companySize = input.companySize;
+  const companyAddress = (input.companyAddress || "").trim();
+  const ownerName = (input.ownerName || "").trim();
+  const ownerEmail = (input.ownerEmail || "").trim().toLowerCase();
+  const ownerPassword = input.ownerPassword || "";
 
-  // Validate organization
-  if (name.length < 2 || name.length > 100) {
-    throw new Error("Organization name must be between 2 and 100 characters");
+  // 2. Validate organization details
+  if (!name || name.length < 2 || name.length > 100) {
+    throw new ProvisioningError("Organization name must be between 2 and 100 characters", 400);
   }
 
-  // Validate owner
-  if (ownerName.length < 2 || ownerName.length > 100) {
-    throw new Error("Owner name must be between 2 and 100 characters");
+  if (!companyEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(companyEmail)) {
+    throw new ProvisioningError("Please provide a valid company email address", 400);
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ownerEmail)) {
-    throw new Error("Please provide a valid owner email address");
+  const normalizedDomain = normalizeDomain(rawDomain);
+  if (!normalizedDomain || !/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(normalizedDomain)) {
+    throw new ProvisioningError("Please provide a valid company domain (e.g. company.com)", 400);
+  }
+
+  const digitsOnly = contactNumber.replace(/\D/g, "");
+  if (!contactNumber || digitsOnly.length < 7 || !/^\+?[0-9\s\-()]{7,25}$/.test(contactNumber)) {
+    throw new ProvisioningError("Please provide a valid contact phone number with at least 7 digits", 400);
+  }
+
+  if (!companySize || !ALLOWED_COMPANY_SIZES.includes(companySize)) {
+    throw new ProvisioningError(
+      `Company size must be one of: ${ALLOWED_COMPANY_SIZES.join(", ")}`,
+      400
+    );
+  }
+
+  if (!companyAddress || companyAddress.length < 2) {
+    throw new ProvisioningError("Company address is required", 400);
+  }
+
+  if (companyAddress.length > 300) {
+    throw new ProvisioningError("Company address must not exceed 300 characters", 400);
+  }
+
+  // 3. Validate owner details
+  if (!ownerName || ownerName.length < 2 || ownerName.length > 100) {
+    throw new ProvisioningError("Owner name must be between 2 and 100 characters", 400);
+  }
+
+  if (!ownerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ownerEmail)) {
+    throw new ProvisioningError("Please provide a valid owner email address", 400);
   }
 
   if (typeof ownerPassword !== "string" || ownerPassword.length < 8) {
-    throw new Error("Password must contain at least 8 characters");
+    throw new ProvisioningError("Password must contain at least 8 characters", 400);
   }
 
   if (Buffer.byteLength(ownerPassword, "utf8") > 72) {
-    throw new Error("Password exceeds the maximum supported length");
+    throw new ProvisioningError("Password exceeds the maximum supported length of 72 bytes", 400);
   }
 
   const slug = generateSlug(name);
-
   if (!slug) {
-    throw new Error("Organization name must contain letters or numbers");
+    throw new ProvisioningError("Organization name must contain letters or numbers", 400);
   }
 
   const databaseName = `tenant_${slug.replace(/-/g, "_")}`;
 
-  // Hash before opening the transaction
+  // 4. Pre-check uniqueness before heavy operations
+  const [existingUserByEmail, existingOrgBySlug] = await Promise.all([
+    User.findOne({ email: ownerEmail }),
+    Organization.findOne({ slug }),
+  ]);
+
+  if (existingUserByEmail) {
+    throw new ProvisioningError("Email is already registered", 409);
+  }
+
+  if (existingOrgBySlug) {
+    throw new ProvisioningError("An organization with this name already exists", 409);
+  }
+
+  // Hash password before transaction
   const passwordHash = await hashPassword(ownerPassword);
 
   const session = await mongoose.startSession();
-
   let organizationId: Types.ObjectId | undefined;
   let ownerId: Types.ObjectId | undefined;
 
   try {
     await session.withTransaction(async () => {
-      // Check globally unique email
-      const existingUser = await User.findOne({
-        email: ownerEmail,
-      }).session(session);
-
+      // Re-verify inside transaction
+      const existingUser = await User.findOne({ email: ownerEmail }).session(session);
       if (existingUser) {
-        throw new Error("Email is already registered");
+        throw new ProvisioningError("Email is already registered", 409);
+      }
+
+      const existingOrg = await Organization.findOne({ slug }).session(session);
+      if (existingOrg) {
+        throw new ProvisioningError("An organization with this name already exists", 409);
       }
 
       const [organization] = await Organization.create(
-        [{ name, slug, status: "active" }],
+        [
+          {
+            name,
+            slug,
+            companyEmail,
+            companyDomain: normalizedDomain,
+            contactNumber,
+            companySize,
+            companyAddress,
+            status: "active",
+          },
+        ],
         { session }
       );
 
@@ -155,26 +248,29 @@ export const provisionOrganization = async (
         { session }
       );
     });
+  } catch (error: any) {
+    if (error instanceof ProvisioningError) {
+      throw error;
+    }
+    if (error?.code === 11000 || error?.message?.includes("E11000 duplicate key")) {
+      throw new ProvisioningError("An organization or user with these details already exists", 409);
+    }
+    throw error;
   } finally {
     await session.endSession();
   }
 
   if (!organizationId || !ownerId) {
-    throw new Error("Organization provisioning failed");
+    throw new ProvisioningError("Organization provisioning failed", 500);
   }
 
-  // Initialize the tenant database after central records are committed
+  // 5. Initialize the tenant database metadata
   try {
-    const connection = await getTenantConnection(
-      organizationId.toString()
-    );
-
-    const metadataCollection = connection.collection<TenantMetadata>(
-      "tenant_metadata"
-    );
+    const connection = await getTenantConnection(organizationId.toString());
+    const metadataCollection = connection.collection<TenantMetadata>("tenant_metadata");
 
     await metadataCollection.updateOne(
-      { _id: "tenant_info" },
+      { _id: "tenant_info" as any },
       {
         $setOnInsert: {
           organizationId,
@@ -191,6 +287,11 @@ export const provisionOrganization = async (
       slug,
       databaseName,
       status: "active",
+      companyEmail,
+      companyDomain: normalizedDomain,
+      contactNumber,
+      companySize,
+      companyAddress,
       owner: {
         userId: ownerId.toString(),
         name: ownerName,
@@ -199,6 +300,7 @@ export const provisionOrganization = async (
       },
     };
   } catch (error) {
+    console.error("Tenant initialization failed:", error);
     await closeTenantConnection(organizationId.toString());
 
     await Tenant.updateOne(
@@ -211,8 +313,9 @@ export const provisionOrganization = async (
       { $set: { status: "suspended" } }
     );
 
-    throw new Error(
-      "Organization was registered, but tenant database initialization failed. The organization has been suspended."
+    throw new ProvisioningError(
+      "Organization was registered, but tenant database initialization failed. The organization has been suspended.",
+      503
     );
   }
 };
