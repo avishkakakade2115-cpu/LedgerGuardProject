@@ -1,3 +1,4 @@
+
 import mongoose, { Types } from "mongoose";
 import Organization, { CompanySize } from "../models/Organization.js";
 import Tenant from "../models/Tenant.js";
@@ -105,21 +106,43 @@ export const provisionOrganization = async (
 
   // 2. Validate organization details
   if (!name || name.length < 2 || name.length > 100) {
-    throw new ProvisioningError("Organization name must be between 2 and 100 characters", 400);
+    throw new ProvisioningError(
+      "Organization name must be between 2 and 100 characters",
+      400
+    );
   }
 
   if (!companyEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(companyEmail)) {
-    throw new ProvisioningError("Please provide a valid company email address", 400);
+    throw new ProvisioningError(
+      "Please provide a valid company email address",
+      400
+    );
   }
 
   const normalizedDomain = normalizeDomain(rawDomain);
-  if (!normalizedDomain || !/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(normalizedDomain)) {
-    throw new ProvisioningError("Please provide a valid company domain (e.g. company.com)", 400);
-  }
 
+  if (
+  !normalizedDomain ||
+    !/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(
+  normalizedDomain
+)
+) {
+  throw new ProvisioningError(
+    "Please provide a valid company domain (e.g. company.com)",
+    400
+  );
+}
   const digitsOnly = contactNumber.replace(/\D/g, "");
-  if (!contactNumber || digitsOnly.length < 7 || !/^\+?[0-9\s\-()]{7,25}$/.test(contactNumber)) {
-    throw new ProvisioningError("Please provide a valid contact phone number with at least 7 digits", 400);
+
+  if (
+    !contactNumber ||
+    digitsOnly.length < 7 ||
+    !/^\+?[0-9\s\-()]{7,25}$/.test(contactNumber)
+  ) {
+    throw new ProvisioningError(
+      "Please provide a valid contact phone number with at least 7 digits",
+      400
+    );
   }
 
   if (!companySize || !ALLOWED_COMPANY_SIZES.includes(companySize)) {
@@ -134,29 +157,48 @@ export const provisionOrganization = async (
   }
 
   if (companyAddress.length > 300) {
-    throw new ProvisioningError("Company address must not exceed 300 characters", 400);
+    throw new ProvisioningError(
+      "Company address must not exceed 300 characters",
+      400
+    );
   }
 
   // 3. Validate owner details
   if (!ownerName || ownerName.length < 2 || ownerName.length > 100) {
-    throw new ProvisioningError("Owner name must be between 2 and 100 characters", 400);
+    throw new ProvisioningError(
+      "Owner name must be between 2 and 100 characters",
+      400
+    );
   }
 
   if (!ownerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ownerEmail)) {
-    throw new ProvisioningError("Please provide a valid owner email address", 400);
+    throw new ProvisioningError(
+      "Please provide a valid owner email address",
+      400
+    );
   }
 
   if (typeof ownerPassword !== "string" || ownerPassword.length < 8) {
-    throw new ProvisioningError("Password must contain at least 8 characters", 400);
+    throw new ProvisioningError(
+      "Password must contain at least 8 characters",
+      400
+    );
   }
 
   if (Buffer.byteLength(ownerPassword, "utf8") > 72) {
-    throw new ProvisioningError("Password exceeds the maximum supported length of 72 bytes", 400);
+    throw new ProvisioningError(
+      "Password exceeds the maximum supported length of 72 bytes",
+      400
+    );
   }
 
   const slug = generateSlug(name);
+
   if (!slug) {
-    throw new ProvisioningError("Organization name must contain letters or numbers", 400);
+    throw new ProvisioningError(
+      "Organization name must contain letters or numbers",
+      400
+    );
   }
 
   const databaseName = `tenant_${slug.replace(/-/g, "_")}`;
@@ -172,27 +214,40 @@ export const provisionOrganization = async (
   }
 
   if (existingOrgBySlug) {
-    throw new ProvisioningError("An organization with this name already exists", 409);
+    throw new ProvisioningError(
+      "An organization with this name already exists",
+      409
+    );
   }
 
   // Hash password before transaction
   const passwordHash = await hashPassword(ownerPassword);
 
   const session = await mongoose.startSession();
+
   let organizationId: Types.ObjectId | undefined;
   let ownerId: Types.ObjectId | undefined;
 
   try {
     await session.withTransaction(async () => {
       // Re-verify inside transaction
-      const existingUser = await User.findOne({ email: ownerEmail }).session(session);
+      const existingUser = await User.findOne({
+        email: ownerEmail,
+      }).session(session);
+
       if (existingUser) {
         throw new ProvisioningError("Email is already registered", 409);
       }
 
-      const existingOrg = await Organization.findOne({ slug }).session(session);
+      const existingOrg = await Organization.findOne({
+        slug,
+      }).session(session);
+
       if (existingOrg) {
-        throw new ProvisioningError("An organization with this name already exists", 409);
+        throw new ProvisioningError(
+          "An organization with this name already exists",
+          409
+        );
       }
 
       const [organization] = await Organization.create(
@@ -252,9 +307,17 @@ export const provisionOrganization = async (
     if (error instanceof ProvisioningError) {
       throw error;
     }
-    if (error?.code === 11000 || error?.message?.includes("E11000 duplicate key")) {
-      throw new ProvisioningError("An organization or user with these details already exists", 409);
+
+    if (
+      error?.code === 11000 ||
+      error?.message?.includes("E11000 duplicate key")
+    ) {
+      throw new ProvisioningError(
+        "An organization or user with these details already exists",
+        409
+      );
     }
+
     throw error;
   } finally {
     await session.endSession();
@@ -267,7 +330,9 @@ export const provisionOrganization = async (
   // 5. Initialize the tenant database metadata
   try {
     const connection = await getTenantConnection(organizationId.toString());
-    const metadataCollection = connection.collection<TenantMetadata>("tenant_metadata");
+
+    const metadataCollection =
+      connection.collection<TenantMetadata>("tenant_metadata");
 
     await metadataCollection.updateOne(
       { _id: "tenant_info" as any },
@@ -301,6 +366,7 @@ export const provisionOrganization = async (
     };
   } catch (error) {
     console.error("Tenant initialization failed:", error);
+
     await closeTenantConnection(organizationId.toString());
 
     await Tenant.updateOne(

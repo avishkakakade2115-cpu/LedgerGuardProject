@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   registerOrganization,
@@ -46,7 +47,9 @@ function OrganizationRegistration({
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
     setCompanyDetails((prev) => ({ ...prev, [name]: value }));
+
     if (fieldErrors[name]) {
       setFieldErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -54,7 +57,9 @@ function OrganizationRegistration({
 
   const handleOwnerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
     setOwnerDetails((prev) => ({ ...prev, [name]: value }));
+
     if (fieldErrors[name]) {
       setFieldErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -64,13 +69,17 @@ function OrganizationRegistration({
     const errors: Record<string, string> = {};
 
     const name = companyDetails.companyName.trim();
+
     if (!name || name.length < 2 || name.length > 100) {
-      errors.companyName = "Company name must be between 2 and 100 characters.";
+      errors.companyName =
+        "Company name must be between 2 and 100 characters.";
     }
 
     const email = companyDetails.companyEmail.trim().toLowerCase();
+
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.companyEmail = "Please enter a valid company email address.";
+      errors.companyEmail =
+        "Please enter a valid company email address.";
     }
 
     const domain = companyDetails.companyDomain
@@ -78,14 +87,25 @@ function OrganizationRegistration({
       .toLowerCase()
       .replace(/^https?:\/\//, "")
       .split(/[\/?#]/)[0];
-    if (!domain || !/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(domain)) {
-      errors.companyDomain = "Please enter a valid domain (e.g. acme.com).";
+
+    if (
+      !domain ||
+      !/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(domain)
+    ) {
+      errors.companyDomain =
+        "Please enter a valid domain (e.g. acme.com).";
     }
 
     const phone = companyDetails.contactNumber.trim();
     const digits = phone.replace(/\D/g, "");
-    if (!phone || digits.length < 7 || !/^\+?[0-9\s\-()]{7,25}$/.test(phone)) {
-      errors.contactNumber = "Please enter a valid phone number (at least 7 digits).";
+
+    if (
+      !phone ||
+      digits.length < 7 ||
+      !/^\+?[0-9\s\-()]{7,25}$/.test(phone)
+    ) {
+      errors.contactNumber =
+        "Please enter a valid phone number (at least 7 digits).";
     }
 
     if (!companyDetails.companySize) {
@@ -93,10 +113,12 @@ function OrganizationRegistration({
     }
 
     const address = companyDetails.companyAddress.trim();
+
     if (!address || address.length < 2) {
       errors.companyAddress = "Company address is required.";
     } else if (address.length > 300) {
-      errors.companyAddress = "Company address must not exceed 300 characters.";
+      errors.companyAddress =
+        "Company address must not exceed 300 characters.";
     }
 
     setFieldErrors(errors);
@@ -107,18 +129,23 @@ function OrganizationRegistration({
     const errors: Record<string, string> = {};
 
     const name = ownerDetails.ownerName.trim();
+
     if (!name || name.length < 2 || name.length > 100) {
-      errors.ownerName = "Administrator name must be between 2 and 100 characters.";
+      errors.ownerName =
+        "Administrator name must be between 2 and 100 characters.";
     }
 
     const email = ownerDetails.ownerEmail.trim().toLowerCase();
+
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       errors.ownerEmail = "Please enter a valid email address.";
     }
 
     const password = ownerDetails.ownerPassword;
+
     if (!password || password.length < 8) {
-      errors.ownerPassword = "Password must be at least 8 characters long.";
+      errors.ownerPassword =
+        "Password must be at least 8 characters long.";
     }
 
     if (password !== ownerDetails.confirmPassword) {
@@ -174,29 +201,36 @@ function OrganizationRegistration({
     }
   };
 
-  // If successfully registered, show confirmation screen
+  // Registration success screen
   if (registeredData) {
     return (
       <div className="registration-page">
         <div className="registration-card">
           <div className="registration-success-card">
             <div className="success-badge">✓</div>
+
             <h2>Organization Registered Successfully!</h2>
+
             <p>
-              Your company account and tenant database have been initialized. You
-              can now sign in with your administrator credentials.
+              Your company account and tenant database have been initialized.
+              You can now sign in with your administrator credentials.
             </p>
 
             <div className="success-summary">
               <div>
-                <strong>Organization:</strong> {registeredData.organizationName}
+                <strong>Organization:</strong>{" "}
+                {registeredData.organizationName}
               </div>
+
               <div>
                 <strong>Slug:</strong> {registeredData.slug}
               </div>
+
               <div>
-                <strong>Administrator:</strong> {registeredData.owner.email}
+                <strong>Administrator:</strong>{" "}
+                {registeredData.owner.email}
               </div>
+
               <div>
                 <strong>Status:</strong> Active
               </div>
@@ -227,7 +261,9 @@ function OrganizationRegistration({
           {[1, 2, 3].map((step) => (
             <div
               key={step}
-              className={`progress-step ${currentStep >= step ? "active" : ""}`}
+              className={`progress-step ${
+                currentStep >= step ? "active" : ""
+              }`}
             >
               <span>{step}</span>
               <p>
@@ -349,6 +385,7 @@ function OrganizationRegistration({
                   Cancel
                 </button>
               )}
+
               <button
                 type="button"
                 className="btn-primary"
@@ -393,7 +430,10 @@ function OrganizationRegistration({
               <p className="field-error">{fieldErrors.ownerEmail}</p>
             )}
 
-            <label htmlFor="ownerPassword">Password (Min. 8 characters) *</label>
+            <label htmlFor="ownerPassword">
+              Password (Min. 8 characters) *
+            </label>
+
             <div className="password-input-group">
               <input
                 id="ownerPassword"
@@ -404,6 +444,7 @@ function OrganizationRegistration({
                 placeholder="Enter password"
                 className={fieldErrors.ownerPassword ? "input-error" : ""}
               />
+
               <button
                 type="button"
                 className="password-toggle-btn"
@@ -412,11 +453,13 @@ function OrganizationRegistration({
                 {showPassword ? "Hide" : "Show"}
               </button>
             </div>
+
             {fieldErrors.ownerPassword && (
               <p className="field-error">{fieldErrors.ownerPassword}</p>
             )}
 
             <label htmlFor="confirmPassword">Confirm Password *</label>
+
             <div className="password-input-group">
               <input
                 id="confirmPassword"
@@ -427,6 +470,7 @@ function OrganizationRegistration({
                 placeholder="Re-enter password"
                 className={fieldErrors.confirmPassword ? "input-error" : ""}
               />
+
               <button
                 type="button"
                 className="password-toggle-btn"
@@ -435,6 +479,7 @@ function OrganizationRegistration({
                 {showConfirmPassword ? "Hide" : "Show"}
               </button>
             </div>
+
             {fieldErrors.confirmPassword && (
               <p className="field-error">{fieldErrors.confirmPassword}</p>
             )}
@@ -450,6 +495,7 @@ function OrganizationRegistration({
               >
                 Back
               </button>
+
               <button
                 type="button"
                 className="btn-primary"
@@ -465,7 +511,9 @@ function OrganizationRegistration({
         {currentStep === 3 && (
           <div className="registration-form">
             <h2>Review Organization Details</h2>
-            <p>Please confirm all information before creating the organization.</p>
+            <p>
+              Please confirm all information before creating the organization.
+            </p>
 
             <div className="review-section">
               <div className="review-section-header">
@@ -486,30 +534,35 @@ function OrganizationRegistration({
                     {companyDetails.companyName}
                   </span>
                 </div>
+
                 <div className="review-item">
                   <span className="review-label">Official Email</span>
                   <span className="review-value">
                     {companyDetails.companyEmail}
                   </span>
                 </div>
+
                 <div className="review-item">
                   <span className="review-label">Domain</span>
                   <span className="review-value">
                     {companyDetails.companyDomain}
                   </span>
                 </div>
+
                 <div className="review-item">
                   <span className="review-label">Contact Phone</span>
                   <span className="review-value">
                     {companyDetails.contactNumber}
                   </span>
                 </div>
+
                 <div className="review-item">
                   <span className="review-label">Company Size</span>
                   <span className="review-value">
                     {companyDetails.companySize} employees
                   </span>
                 </div>
+
                 <div className="review-item">
                   <span className="review-label">Address</span>
                   <span className="review-value">
@@ -538,15 +591,19 @@ function OrganizationRegistration({
                     {ownerDetails.ownerName}
                   </span>
                 </div>
+
                 <div className="review-item">
                   <span className="review-label">Login Email</span>
                   <span className="review-value">
                     {ownerDetails.ownerEmail}
                   </span>
                 </div>
+
                 <div className="review-item">
                   <span className="review-label">Password</span>
-                  <span className="review-value">•••••••• (Securely hashed)</span>
+                  <span className="review-value">
+                    •••••••• (Will be securely hashed)
+                  </span>
                 </div>
               </div>
             </div>
@@ -560,13 +617,16 @@ function OrganizationRegistration({
               >
                 Back
               </button>
+
               <button
                 type="button"
                 className="btn-primary"
                 disabled={loading}
                 onClick={handleSubmit}
               >
-                {loading ? "Registering Organization..." : "Register Organization"}
+                {loading
+                  ? "Registering Organization..."
+                  : "Register Organization"}
               </button>
             </div>
           </div>

@@ -31,14 +31,14 @@ const organizationSchema = new Schema<IOrganization>(
       unique: true,
       lowercase: true,
       trim: true,
-      match: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+       match: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
     },
 
     companyEmail: {
       type: String,
       trim: true,
       lowercase: true,
-      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Please provide a valid company email address"],
+      match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     },
 
     companyDomain: {

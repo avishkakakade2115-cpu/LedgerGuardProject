@@ -1,9 +1,10 @@
 
+
 import { createClient } from "redis";
 import { env } from "./env.js";
 
 export const redisClient = createClient({
-  url: env.REDIS_URL,
+  url: env.REDIS_URL || "redis://127.0.0.1:6380",
 });
 
 redisClient.on("error", (error: Error) => {
@@ -23,9 +24,12 @@ redisClient.on("reconnecting", () => {
 });
 
 export const connectRedis = async (): Promise<void> => {
-  if (redisClient.isOpen) {
+  if (!env.REDIS_URL && env.NODE_ENV !== "production") {
+    console.log("Redis skipped in development: REDIS_URL not configured");
     return;
   }
+
+  if (redisClient.isOpen) return;
 
   await redisClient.connect();
 

@@ -6,22 +6,18 @@ import { connectCentralDB } from "./config/centralDb.js";
 import {
   connectRedis,
   disconnectRedis,
+  redisClient,
 } from "./config/redis.js";
 
-import { redisClient } from "./config/redis.js";
 import { env } from "./config/env.js";
-
+import { closeAllTenantConnections } from "./services/tenantConnectionManager.js";
 import type { Server } from "node:http";
-
-
 
 let server: Server | null = null;
 let isShuttingDown = false;
 
-
-
 const shutdown = async (signal: string): Promise<void> => {
-   console.log("Shutdown handler triggered:", signal);
+  console.log("Shutdown handler triggered:", signal);
 
   if (isShuttingDown) {
     return;
@@ -46,6 +42,8 @@ const shutdown = async (signal: string): Promise<void> => {
     }
 
     await disconnectRedis();
+
+    await closeAllTenantConnections();
 
     if (mongoose.connection.readyState !== 0) {
       await mongoose.disconnect();
@@ -83,8 +81,11 @@ const startServer = async (): Promise<void> => {
         await disconnectRedis();
       }
 
+      await closeAllTenantConnections();
+
       if (mongoose.connection.readyState !== 0) {
         await mongoose.disconnect();
+        console.log("Central MongoDB disconnected successfully");
       }
     } catch (cleanupError) {
       console.error("Startup cleanup failed:", cleanupError);
