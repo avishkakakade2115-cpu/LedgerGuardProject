@@ -29,9 +29,7 @@ const Login = ({ onBack, onLoginSuccess }: LoginProps) => {
       onLoginSuccess?.();
     } catch (error) {
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to sign in. Please try again."
+        error instanceof Error ? error.message : "Unable to sign in. Please try again."
       );
     } finally {
       setLoading(false);
@@ -43,13 +41,7 @@ const Login = ({ onBack, onLoginSuccess }: LoginProps) => {
       {/* LEFT SIDE - LOGIN FORM */}
       <div className="login-left">
         <div className="login-container">
-          <button
-            type="button"
-            className="login-back-button"
-            onClick={onBack}
-          >
-            ← Back to Portal
-          </button>
+          <button type="button" className="login-back-button" onClick={onBack}> ← Back to Portal</button>
 
           <div className="login-logo">
             <div className="logo-symbol">L</div>
@@ -64,36 +56,21 @@ const Login = ({ onBack, onLoginSuccess }: LoginProps) => {
           <form className="login-form" onSubmit={handleSubmit}>
             <div className="form-group">
               <label htmlFor="email">Email Address</label>
-              <input
-                type="email"
-                id="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                autoComplete="email"
-                required
-              />
+              <input type="email" id="email" placeholder="Enter your email" value={email}
+                onChange={(event) => setEmail(event.target.value)} autoComplete="email" required/>
             </div>
 
             <div className="form-group">
               <label htmlFor="password">Password</label>
 
               <div className="password-field">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  placeholder="Enter your password"
-                  value={password}
+                <input type={showPassword ? "text" : "password"}
+                  id="password" placeholder="Enter your password" value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   autoComplete="current-password"
-                  required
-                />
+                  required/>
 
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="show-password"
-                >
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="show-password">
                   {showPassword ? "Hide" : "Show"}
                 </button>
               </div>
@@ -120,11 +97,7 @@ const Login = ({ onBack, onLoginSuccess }: LoginProps) => {
               </p>
             )}
 
-            <button
-              type="submit"
-              className="login-submit"
-              disabled={loading}
-            >
+            <button type="submit" className="login-submit" disabled={loading}>
               {loading ? "Signing In..." : "Sign In"}
             </button>
           </form>
