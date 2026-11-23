@@ -117,6 +117,39 @@
   background: #173f7c;
 }
 
+.registration-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.registration-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.registration-review {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #dce1e9;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #344054;
+}
+
+.registration-review p {
+  margin: 8px 0;
+}
+
+.registration-error {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 7px;
+  background: #fff1f1;
+  color: #b42318;
+  font-size: 14px;
+}
+
 @media (max-width: 600px) {
   .registration-card {
     padding: 22px;

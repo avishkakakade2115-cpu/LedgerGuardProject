@@ -46,7 +46,9 @@ function EntryPortal() {
           <button className="back-button" onClick={goBack}>
             ← Back to Portal
           </button>
-          <OrganizationRegistration />
+          <OrganizationRegistration
+            onRegistrationSuccess={() => setIsAuthenticated(true)}
+          />
           <footer className="entry-footer">
             © 2026 LedgerGuard. All rights reserved.
           </footer>
