@@ -138,6 +138,8 @@ const CompanyDashboard = ({ onLogout }: CompanyDashboardProps) => {
         <Sidebar
           activeItem={activeSection}
           onNavigate={handleNavigate}
+          userName={currentUser.name}
+          userRole={currentUser.role}
         />
       </div>
 
@@ -189,6 +191,11 @@ const CompanyDashboard = ({ onLogout }: CompanyDashboardProps) => {
                 <section className="dashboard-panel">
                   <h2>Organization Details</h2>
                   <p><strong>Name:</strong> {organization.name}</p>
+                  <p><strong>Official Email:</strong> {organization.companyEmail || "Not specified"}</p>
+                  <p><strong>Domain:</strong> {organization.companyDomain || "Not specified"}</p>
+                  <p><strong>Contact:</strong> {organization.contactNumber || "Not specified"}</p>
+                  <p><strong>Size:</strong> {organization.companySize ? `${organization.companySize} employees` : "Not specified"}</p>
+                  <p><strong>Address:</strong> {organization.companyAddress || "Not specified"}</p>
                   <p><strong>Slug:</strong> {organization.slug}</p>
                   <p><strong>Status:</strong> {organization.status}</p>
                 </section>

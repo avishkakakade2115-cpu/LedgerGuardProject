@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../styles/entryPortal.css";
 import Login from "./Login";
 import OrganizationRegistration from "./OrganizationRegistration";
 import CompanyDashboard from "./CompanyDashboard";
+import { getCurrentUser, logoutUser } from "../services/api";
 
 type PortalChoice =
   | "company-existing"
@@ -12,20 +13,90 @@ type PortalChoice =
 
 function EntryPortal() {
   const [choice, setChoice] = useState<PortalChoice | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isVerifyingAuth, setIsVerifyingAuth] = useState(true);
+  const [authError, setAuthError] = useState("");
 
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => Boolean(sessionStorage.getItem("ledgerguard_token"))
-  );
+  useEffect(() => {
+    let isMounted = true;
+    const token = sessionStorage.getItem("ledgerguard_token");
 
-  const goBack = () => setChoice(null);
+    if (!token) {
+      setIsVerifyingAuth(false);
+      return;
+    }
+
+    const verifyExistingToken = async () => {
+      try {
+        await getCurrentUser();
+        if (isMounted) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        if (isMounted) {
+          logoutUser();
+          setIsAuthenticated(false);
+          setAuthError(
+            error instanceof Error
+              ? error.message
+              : "Session expired. Please log in again."
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsVerifyingAuth(false);
+        }
+      }
+    };
+
+    verifyExistingToken();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const goBack = () => {
+    setChoice(null);
+    setAuthError("");
+  };
+
+  if (isVerifyingAuth) {
+    return (
+      <div className="entry-page">
+        <div
+          className="entry-container"
+          style={{ textAlign: "center", padding: "80px 20px" }}
+        >
+          <div
+            style={{
+              fontSize: "28px",
+              fontWeight: "bold",
+              color: "#173b72",
+              marginBottom: "12px",
+            }}
+          >
+            LedgerGuard
+          </div>
+          <p style={{ color: "#7b8494", fontSize: "16px" }}>
+            Verifying your session...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (isAuthenticated) {
-  return (
-    <CompanyDashboard
-      onLogout={() => setIsAuthenticated(false)}
-    />
-  );
-}
+    return (
+      <CompanyDashboard
+        onLogout={() => {
+          logoutUser();
+          setIsAuthenticated(false);
+          setChoice(null);
+        }}
+      />
+    );
+  }
 
   if (
     choice === "company-existing" ||
@@ -34,7 +105,11 @@ function EntryPortal() {
     return (
       <Login
         onBack={goBack}
-        onLoginSuccess={() => setIsAuthenticated(true)}
+        onLoginSuccess={() => {
+          setIsAuthenticated(true);
+          setAuthError("");
+        }}
+        onNavigateToRegister={() => setChoice("company-new")}
       />
     );
   }
@@ -43,11 +118,9 @@ function EntryPortal() {
     return (
       <div className="entry-page">
         <div className="entry-container">
-          <button className="back-button" onClick={goBack}>
-            ← Back to Portal
-          </button>
           <OrganizationRegistration
-            onRegistrationSuccess={() => setIsAuthenticated(true)}
+            onBack={goBack}
+            onSuccess={() => setChoice("company-existing")}
           />
           <footer className="entry-footer">
             © 2026 LedgerGuard. All rights reserved.
@@ -64,6 +137,24 @@ function EntryPortal() {
           <h1>LedgerGuard</h1>
           <p>Secure Organization Management Platform</p>
         </header>
+
+        {authError && (
+          <div
+            style={{
+              maxWidth: "500px",
+              margin: "0 auto 20px",
+              padding: "12px 16px",
+              background: "#fef2f2",
+              border: "1px solid #f87171",
+              borderRadius: "8px",
+              color: "#b91c1c",
+              textAlign: "center",
+              fontSize: "14px",
+            }}
+          >
+            {authError}
+          </div>
+        )}
 
         {!choice ? (
           <>

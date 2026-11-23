@@ -6,9 +6,14 @@ import "../styles/login.css";
 type LoginProps = {
   onBack: () => void;
   onLoginSuccess?: () => void;
+  onNavigateToRegister?: () => void;
 };
 
-const Login = ({ onBack, onLoginSuccess }: LoginProps) => {
+const Login = ({
+  onBack,
+  onLoginSuccess,
+  onNavigateToRegister,
+}: LoginProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -104,7 +109,25 @@ const Login = ({ onBack, onLoginSuccess }: LoginProps) => {
 
           <div className="register-link">
             Don't have an account?
-            <a href="/register"> Create Account</a>
+            {onNavigateToRegister ? (
+              <button
+                type="button"
+                onClick={onNavigateToRegister}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#2467bd",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  padding: 0,
+                  fontSize: "inherit",
+                }}
+              >
+                {" "}Create Account
+              </button>
+            ) : (
+              <a href="#register"> Create Account</a>
+            )}
           </div>
 
           <div className="login-copyright">
