@@ -1,12 +1,13 @@
 
 import { Connection, Model, Schema } from "mongoose";
 import { getTenantConnection } from "./tenantConnectionManager.js";
+import {
+  ITransaction,
+  transactionSchema,
+} from "../models/Transaction.js";
 
 /**
  * Returns an existing tenant model or registers a new one.
- *
- * Every model is registered on the tenant's own connection,
- * never on the central MongoDB connection.
  */
 export const getTenantModel = async <T>(
   organizationId: string,
@@ -16,7 +17,6 @@ export const getTenantModel = async <T>(
   const connection: Connection =
     await getTenantConnection(organizationId);
 
-  // Check whether this model is already registered.
   const existingModel = connection.models[modelName] as
     | Model<T>
     | undefined;
@@ -25,6 +25,19 @@ export const getTenantModel = async <T>(
     return existingModel;
   }
 
-  // Register the model on this tenant's connection.
   return connection.model<T>(modelName, schema);
+};
+
+/**
+ * Gets or registers the Transaction model
+ * on the organization's tenant database.
+ */
+export const getTenantTransactionModel = async (
+  organizationId: string
+): Promise<Model<ITransaction>> => {
+  return getTenantModel<ITransaction>(
+    organizationId,
+    "Transaction",
+    transactionSchema
+  );
 };
