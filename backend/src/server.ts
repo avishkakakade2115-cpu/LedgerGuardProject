@@ -10,6 +10,7 @@ import {
 
 import { redisClient } from "./config/redis.js";
 import { env } from "./config/env.js";
+import { closeAllTenantConnections } from "./services/tenantConnectionManager.js";
 
 import type { Server } from "node:http";
 
@@ -44,6 +45,14 @@ const shutdown = async (signal: string): Promise<void> => {
 
       console.log("HTTP server closed");
     }
+    await disconnectRedis();
+
+await closeAllTenantConnections();
+
+if (mongoose.connection.readyState !== 0) {
+  await mongoose.disconnect();
+  console.log("Central MongoDB disconnected successfully");
+}
 
     await disconnectRedis();
 
