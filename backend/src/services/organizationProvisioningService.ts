@@ -64,6 +64,8 @@ const ALLOWED_COMPANY_SIZES: CompanySize[] = [
   "500+",
 ];
 
+
+
 /**
  * Converts an organization name into a URL-friendly slug.
  */
