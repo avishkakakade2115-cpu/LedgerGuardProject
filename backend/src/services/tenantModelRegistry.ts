@@ -1,4 +1,7 @@
-
+import {
+  IAccount,
+  accountSchema,
+} from "../models/Account.js";
 import { Connection, Model, Schema } from "mongoose";
 import { getTenantConnection } from "./tenantConnectionManager.js";
 import {
@@ -39,5 +42,18 @@ export const getTenantTransactionModel = async (
     organizationId,
     "Transaction",
     transactionSchema
+  );
+};
+/**
+ * Gets or registers the Account model
+ * on the organization's tenant database.
+ */
+export const getTenantAccountModel = async (
+  organizationId: string
+): Promise<Model<IAccount>> => {
+  return getTenantModel<IAccount>(
+    organizationId,
+    "Account",
+    accountSchema
   );
 };
